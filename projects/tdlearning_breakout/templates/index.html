@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Breakout</title>
+    <style>
+        body { background-color: #333; color: white; text-align: center; font-family: sans-serif; }
+        .game-container { position: relative; display: inline-block; }
+        canvas { border: 2px solid white; display: block; }
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover { background-color: #45a049; }
+    </style>
+</head>
+<body>
+    <h1>Play Breakout</h1>
+    <div class="game-container">
+        <canvas id="game-canvas" width="480" height="630"></canvas>
+        <div id="overlay">
+            <h2>GAME OVER</h2>
+            <button id="restart-btn">Restart Game</button>
+        </div>
+    </div>
+    <p>Use Left/Right arrow keys to move the paddle.</p>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const overlay = document.getElementById('overlay');
+        const restartBtn = document.getElementById('restart-btn');
+        const socket = io();
+
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+
+        socket.on('frame', (data) => {
+            const image = new Image();
+            image.src = 'data:image/jpeg;base64,' + data.image;
+            image.onload = () => {
+                ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+            };
+        });
+
+        socket.on('game_over', () => {
+            overlay.style.display = 'flex';
+        });
+
+        restartBtn.addEventListener('click', () => {
+            socket.emit('restart');
+            overlay.style.display = 'none';
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                socket.emit('input', { key: event.key });
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                socket.emit('input', { key: null });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+flask
+flask-socketio
+gymnasium[atari]
+gymnasium[accept-rom-license]
+opencv-python
+torch
+shimmy
+ale-py
+eventlet
